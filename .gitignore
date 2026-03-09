@@ -3,4 +3,5 @@ __pycache__/
 
 # Large local artifacts
 weight/
-My_Forgery_Location_Task/
+My_Forgery_Location_Task/dataset/
+My_Forgery_Location_Task/MFLM_output/
