@@ -1,6 +1,5 @@
 #!/bin/sh
 
-pip install transformers==4.28.0  > /dev/null 2>&1
 
 export PATH=/usr/local/cuda/bin:$PATH
 export MASTER_PORT=$(shuf -i 2000-65000 -n 1)

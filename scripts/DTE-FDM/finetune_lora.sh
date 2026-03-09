@@ -3,7 +3,6 @@ OUTPUT_DIR=./playground/DTE-FDM_train_result
 DATA_PATH=path_to_your_train_data
 WEIGHT_PATH=./weight/fakeshield-v1-22b/DTE-FDM
 
-pip install transformers==4.37.2  > /dev/null 2>&1
 mkdir -p $OUTPUT_DIR
 deepspeed --include localhost:0,1,2,3  --master_port=29501  ./DTE-FDM/llava/train/train_mem.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
