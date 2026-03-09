@@ -22,7 +22,10 @@ from transformers import AutoConfig, AutoModelForCausalLM, \
                          LlamaConfig, LlamaModel, LlamaForCausalLM
 
 from transformers.modeling_outputs import CausalLMOutputWithPast
-from transformers.generation.utils import GenerateOutput
+try:
+    from transformers.generation.utils import GenerateOutput
+except ImportError:
+    GenerateOutput = None
 
 from ..llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
 
@@ -44,7 +47,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
     def __init__(self, config):
         super(LlamaForCausalLM, self).__init__(config)
         self.model = LlavaLlamaModel(config)
-        self.pretraining_tp = config.pretraining_tp
+        self.pretraining_tp = getattr(config, 'pretraining_tp', 1)
         self.vocab_size = config.vocab_size
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
 
@@ -63,11 +66,14 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         inputs_embeds: Optional[torch.FloatTensor] = None,
         labels: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
+        cache_position: Optional[torch.LongTensor] = None,
+        logits_to_keep: Union[int, torch.Tensor] = 0,
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         images: Optional[torch.FloatTensor] = None,
         image_sizes: Optional[List[List[int]]] = None,
         return_dict: Optional[bool] = None,
+        **kwargs,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
 
         if inputs_embeds is None:
@@ -96,9 +102,12 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
             inputs_embeds=inputs_embeds,
             labels=labels,
             use_cache=use_cache,
+            cache_position=cache_position,
+            logits_to_keep=logits_to_keep,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
-            return_dict=return_dict
+            return_dict=return_dict,
+            **kwargs,
         )
 
     @torch.no_grad()
@@ -134,7 +143,20 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         else:
             inputs_embeds = self.get_model().embed_tokens(inputs)
 
+        # transformers 5.x needs input_ids for shape inference even when using inputs_embeds
+        if inputs_embeds is not None and inputs is None:
+            batch_size = inputs_embeds.shape[0]
+            inputs = torch.zeros(
+                (batch_size, 1), dtype=torch.long, device=inputs_embeds.device
+            )
+            if attention_mask is None:
+                attention_mask = torch.ones(
+                    (batch_size, inputs_embeds.shape[1]),
+                    dtype=torch.long, device=inputs_embeds.device
+                )
+
         return super().generate(
+            inputs,
             position_ids=position_ids,
             attention_mask=attention_mask,
             inputs_embeds=inputs_embeds,

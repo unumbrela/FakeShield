@@ -32,7 +32,7 @@ class DomainTagGenerator:
 
         self.model = models.resnet50(pretrained=False)
         self.model.fc = nn.Linear(self.model.fc.in_features, self.num_classes)
-        self.model.load_state_dict(torch.load(model_path, map_location=self.device))
+        self.model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=True))
         self.model = self.model.to(self.device)
         self.model.eval()
 

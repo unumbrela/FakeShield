@@ -5,8 +5,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from mmdet.models import BaseRoIExtractor
-from mmcv.cnn import ConvModule, Linear, normal_init
+from mmdet.models.roi_heads.roi_extractors.base_roi_extractor import BaseRoIExtractor
+from mmcv.cnn import ConvModule
+try:
+    from mmcv.cnn import normal_init
+except ImportError:
+    from torch.nn.init import normal_ as _normal_init
+    def normal_init(module, mean=0, std=1, bias=0):
+        if hasattr(module, 'weight') and module.weight is not None:
+            _normal_init(module.weight, mean, std)
+        if hasattr(module, 'bias') and module.bias is not None:
+            module.bias.data.fill_(bias)
+Linear = nn.Linear
 
 
 def str2reg(input_str):

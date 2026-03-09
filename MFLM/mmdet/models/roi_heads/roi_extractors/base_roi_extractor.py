@@ -4,7 +4,13 @@ from abc import ABCMeta, abstractmethod
 import torch
 import torch.nn as nn
 from mmcv import ops
-from mmcv.runner import BaseModule
+try:
+    from mmcv.runner import BaseModule
+except ImportError:
+    try:
+        from mmengine.model import BaseModule
+    except ImportError:
+        BaseModule = nn.Module
 
 
 class BaseRoIExtractor(BaseModule, metaclass=ABCMeta):
@@ -23,7 +29,10 @@ class BaseRoIExtractor(BaseModule, metaclass=ABCMeta):
                  out_channels,
                  featmap_strides,
                  init_cfg=None):
-        super(BaseRoIExtractor, self).__init__(init_cfg)
+        if BaseModule is nn.Module:
+            super(BaseRoIExtractor, self).__init__()
+        else:
+            super(BaseRoIExtractor, self).__init__(init_cfg)
         self.roi_layers = self.build_roi_layers(roi_layer, featmap_strides)
         self.out_channels = out_channels
         self.featmap_strides = featmap_strides

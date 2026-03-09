@@ -21,6 +21,9 @@ QUESTION_PATH="${TASK_DIR}/test_input.jsonl"
 DTE_FDM_OUTPUT="${TASK_DIR}/DTE-FDM_output.jsonl"
 MFLM_OUTPUT="${TASK_DIR}/MFLM_output"
 
+# Add module paths so llava/MFLM can be imported without pip install
+export PYTHONPATH="${PROJ_ROOT}/DTE-FDM:${PROJ_ROOT}/MFLM:${PYTHONPATH}"
+
 echo "============================================"
 echo "  Step 1: Generate test_input.jsonl"
 echo "============================================"
@@ -31,6 +34,7 @@ echo ""
 echo "============================================"
 echo "  Step 2: Run DTE-FDM (Detection)"
 echo "============================================"
+PYTHONPATH="${PROJ_ROOT}/DTE-FDM:${PYTHONPATH}" \
 CUDA_VISIBLE_DEVICES=0 \
 python ./DTE-FDM/llava/eval/model_vqa.py \
     --model-path "${WEIGHT_PATH}/DTE-FDM" \
@@ -43,6 +47,7 @@ echo ""
 echo "============================================"
 echo "  Step 3: Run MFLM (Localization)"
 echo "============================================"
+PYTHONPATH="${PROJ_ROOT}/MFLM:${PYTHONPATH}" \
 CUDA_VISIBLE_DEVICES=0 \
 python ./MFLM/test.py \
     --version "${WEIGHT_PATH}/MFLM" \

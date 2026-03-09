@@ -1,6 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+# Minimal imports for FakeShield inference (compatible with mmcv 2.x)
 from .base_roi_extractor import BaseRoIExtractor
-from .generic_roi_extractor import GenericRoIExtractor
-from .single_level_roi_extractor import SingleRoIExtractor
 
-__all__ = ['BaseRoIExtractor', 'SingleRoIExtractor', 'GenericRoIExtractor']
+__all__ = ['BaseRoIExtractor']

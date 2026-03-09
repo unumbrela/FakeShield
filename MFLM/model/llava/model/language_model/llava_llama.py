@@ -66,6 +66,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         images: Optional[torch.FloatTensor] = None,
         bboxes: Optional[List[torch.FloatTensor]] = None,
         return_dict: Optional[bool] = None,
+        **kwargs,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         output_attentions = (
             output_attentions
@@ -146,11 +147,20 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         bboxes=None,
         **kwargs
     ):
-        if past_key_values:
-            input_ids = input_ids[:, -1:]
+        has_past = past_key_values is not None
+        # Handle both legacy tuple cache and new DynamicCache
+        if has_past:
+            try:
+                # DynamicCache in transformers 5.x
+                cache_len = past_key_values.get_seq_length()
+            except AttributeError:
+                # Legacy tuple cache
+                cache_len = past_key_values[0][0].shape[2] if past_key_values else 0
+            if cache_len > 0:
+                input_ids = input_ids[:, -1:]
 
         # if `inputs_embeds` are passed, we only want to use them in the 1st generation step
-        if inputs_embeds is not None and past_key_values is None:
+        if inputs_embeds is not None and not has_past:
             model_inputs = {"inputs_embeds": inputs_embeds}
         else:
             model_inputs = {"input_ids": input_ids}
@@ -161,7 +171,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 "use_cache": kwargs.get("use_cache"),
                 "attention_mask": attention_mask,
                 "images": images,
-                "bboxes" : bboxes
+                "bboxes": bboxes,
             }
         )
         return model_inputs

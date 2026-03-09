@@ -211,7 +211,11 @@ class GLaMMForCausalLM(LlavaLlamaForCausalLM):
         return torch.cat(global_enc_image_list, dim=0)
 
     def _process_hidden_states(self, output_hidden_states, seg_token_mask, offset, infer=False):
-        hidden_states = [self.model.text_hidden_fcs[0](output_hidden_states[-1])]
+        # In transformers 5.x, generation hidden_states per step may be a tuple of layers
+        last_hs = output_hidden_states[-1]
+        if isinstance(last_hs, tuple):
+            last_hs = last_hs[-1]  # take last layer
+        hidden_states = [self.model.text_hidden_fcs[0](last_hs)]
         last_hidden_state = torch.stack(hidden_states, dim=-1).sum(dim=-1)
         pred_embeddings = last_hidden_state[seg_token_mask]
         seg_token_counts = seg_token_mask.int().sum(-1)
@@ -292,7 +296,8 @@ class GLaMMForCausalLM(LlavaLlamaForCausalLM):
         with torch.no_grad():
             generation_outputs = self.generate(
                 images=global_enc_images, input_ids=input_ids, bboxes=bboxes, max_new_tokens=max_tokens_new,
-                num_beams=1, output_hidden_states=True, return_dict_in_generate=True, )
+                num_beams=1, output_hidden_states=True, return_dict_in_generate=True,
+                use_cache=False, )
 
             output_hidden_states = generation_outputs.hidden_states
             generated_output_ids = generation_outputs.sequences
