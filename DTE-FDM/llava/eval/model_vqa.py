@@ -134,7 +134,7 @@ def eval_model(args):
 
         ans_id = shortuuid.uuid()
         ans_file.write(json.dumps({"image": image_file,
-                                    "outputs": outputs}) + "\n")
+                                    "outputs": outputs}, ensure_ascii=False) + "\n")
         ans_file.flush()
     ans_file.close()
     print("======== The detection result is saved to {} ========".format(args.answers_file))

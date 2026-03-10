@@ -58,7 +58,12 @@ def is_tampered(output_text):
         "is authentic",
         "taken directly from the camera",
         "no tampering",
-        # 中文关键词
+        "not tampered",
+        "no forgery",
+        "not forged",
+        "not manipulated",
+        "no manipulation",
+        # 中文关键词 - 直接否定
         "未被篡改",
         "没有被篡改",
         "未被伪造",
@@ -71,6 +76,44 @@ def is_tampered(output_text):
         "未经修改",
         "真实图像",
         "原始图像",
+        # 中文关键词 - 扩充：无明显篡改/异常
+        "没有明显的篡改",
+        "没有明显篡改",
+        "无明显篡改",
+        "无篡改痕迹",
+        "没有篡改痕迹",
+        "未见篡改",
+        "没有发现篡改",
+        "没有发现伪造",
+        "无伪造痕迹",
+        "没有伪造痕迹",
+        "未见伪造",
+        "未见明显异常",
+        "没有明显异常",
+        "无明显异常",
+        "未发现异常",
+        "没有发现异常",
+        # 中文关键词 - 真实/原始判定
+        "判断为真实",
+        "判定为真实",
+        "认为是真实",
+        "属于真实",
+        "看起来是真实的",
+        "整体真实",
+        "未经篡改",
+        "不存在篡改",
+        "不存在伪造",
+        "没有经过篡改",
+        "没有经过伪造",
+        "没有经过修改",
+        "未经伪造",
+        # 中文关键词 - 否定表述变体
+        "不像是被篡改",
+        "不像被篡改",
+        "并未篡改",
+        "并未伪造",
+        "没有篡改",
+        "没有伪造",
     ]
     text_lower = output_text.lower()
     for kw in not_tampered_keywords:
@@ -100,7 +143,7 @@ def main():
 
     # Write CSV
     with open(OUTPUT_CSV, 'w', encoding='utf-8', newline='') as csvfile:
-        writer = csv.writer(csvfile)
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
         writer.writerow(["image_name", "label", "location", "explanation"])
 
         for image_name in all_test_images:
